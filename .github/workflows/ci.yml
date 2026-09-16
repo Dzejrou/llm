@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+    # The default events, listed explicitly: every new commit on a PR reruns the checks.
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust-checks:
+    name: Rust checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      # Install stable explicitly and name it (`+stable`) in every command below, so
+      # the checks never depend on whichever toolchain the runner image defaults to.
+      - name: Install stable Rust with rustfmt and Clippy
+        run: rustup toolchain install stable --profile minimal --component rustfmt --component clippy
+
+      - name: Show toolchain versions
+        run: |
+          rustc +stable --version --verbose
+          cargo +stable --version --verbose
+          cargo +stable fmt --version
+          cargo +stable clippy --version
+
+      - name: Check formatting
+        run: cargo +stable fmt --check
+
+      # `--locked` fails the job instead of silently rewriting Cargo.lock.
+      - name: Lint with Clippy
+        run: cargo +stable clippy --locked --all-targets -- -D warnings
+
+      # Plain `cargo test` (not `--lib`/`--tests`) so the documentation tests run too,
+      # including the README usage example.
+      - name: Run tests
+        run: cargo +stable test --locked
