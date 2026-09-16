@@ -40,6 +40,33 @@ cargo clippy --all-targets -- -D warnings
 There are no dependencies, and no binary target yet — there is not yet a command
 worth exposing.
 
+## Continuous integration
+
+Every pull request targeting `main` — and every push to `main`, including the
+commit a merge produces — runs the checks above on a fresh GitHub-hosted Ubuntu
+runner, as defined in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+The job, `Rust checks`, installs stable Rust with rustfmt and Clippy, prints the
+toolchain versions, and then runs:
+
+```bash
+cargo +stable fmt --check
+cargo +stable clippy --locked --all-targets -- -D warnings
+cargo +stable test --locked                 # includes the documentation tests
+```
+
+`+stable` pins the toolchain rather than trusting the runner's default, and
+`--locked` fails instead of quietly changing `Cargo.lock`. Any failing command
+fails the job. Pushing another commit to a pull request starts a fresh run.
+
+Results appear in the checks section at the bottom of the pull request's
+*Conversation* tab and in its *Checks* tab. Each step's log is under the
+repository's *Actions* tab.
+
+What this guarantees is narrow: the proposed code is formatted, lint-free, and
+passes its tests, checked the same way every time. It does not judge whether the
+mathematics is right, the architecture sound, or the explanations clear. That is
+still the job of code review.
+
 ## Usage
 
 ```rust
