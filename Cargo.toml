@@ -1,0 +1,10 @@
+[package]
+name = "tiny-llm"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "An educational, from-scratch language model in Rust. Phase 1: byte tokenization."
+license = "MIT"
+publish = false
+
+[dependencies]
